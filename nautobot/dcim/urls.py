@@ -32,6 +32,8 @@ from .models import (
     VirtualChassis,
 )
 
+from nautobot.dcim.api.views import SiteViewSet
+
 app_name = "dcim"
 urlpatterns = [
     # Regions
@@ -63,7 +65,8 @@ urlpatterns = [
     path("sites/edit/", views.SiteBulkEditView.as_view(), name="site_bulk_edit"),
     path("sites/delete/", views.SiteBulkDeleteView.as_view(), name="site_bulk_delete"),
     path("sites/<slug:slug>/", views.SiteView.as_view(), name="site"),
-    path("sites/<slug:slug>/edit/", views.SiteEditView.as_view(), name="site_edit"),
+    # path("sites/<slug:slug>/edit/", views.SiteEditView.as_view(), name="site_edit"),
+    path("sites/<slug:slug>/edit/", SiteViewSet.as_view({"get": "update"}), name="site_edit"),
     path("sites/<slug:slug>/delete/", views.SiteDeleteView.as_view(), name="site_delete"),
     path(
         "sites/<slug:slug>/changelog/",

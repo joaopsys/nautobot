@@ -1,44 +1,44 @@
 {% extends 'generic/object_edit.html' %}
-{% load form_helpers %}
+{% load rest_framework %}
 
 {% block form %}
     <div class="panel panel-default">
         <div class="panel-heading"><strong>Site</strong></div>
         <div class="panel-body">
-            {% render_field form.name %}
-            {% render_field form.slug %}
-            {% render_field form.status %}
-            {% render_field form.region %}
-            {% render_field form.facility %}
-            {% render_field form.asn %}
-            {% render_field form.time_zone %}
-            {% render_field form.description %}
+            {% render_field serializer.name style=style %}
+            {% render_field serializer.slug style=style %}
+            {% render_field serializer.status style=style %}
+            {% render_field serializer.region style=style %}
+            {% render_field serializer.facility style=style %}
+            {% render_field serializer.asn style=style %}
+            {% render_field serializer.time_zone style=style %}
+            {% render_field serializer.description style=style %}
         </div>
     </div>
     <div class="panel panel-default">
         <div class="panel-heading"><strong>Tenancy</strong></div>
         <div class="panel-body">
-            {% render_field form.tenant_group %}
-            {% render_field form.tenant %}
+            {% render_field serializer.tenant_group style=style %}
+            {% render_field serializer.tenant style=style %}
         </div>
     </div>
     <div class="panel panel-default">
         <div class="panel-heading"><strong>Contact Info</strong></div>
         <div class="panel-body">
-            {% render_field form.physical_address %}
-            {% render_field form.shipping_address %}
-            {% render_field form.latitude %}
-            {% render_field form.longitude %}
-            {% render_field form.contact_name %}
-            {% render_field form.contact_phone %}
-            {% render_field form.contact_email %}
+            {% render_field serializer.physical_address style=style %}
+            {% render_field serializer.shipping_address style=style %}
+            {% render_field serializer.latitude style=style %}
+            {% render_field serializer.longitude style=style %}
+            {% render_field serializer.contact_name style=style %}
+            {% render_field serializer.contact_phone style=style %}
+            {% render_field serializer.contact_email style=style %}
         </div>
     </div>
     {% include 'inc/extras_features_edit_form_fields.html' %}
     <div class="panel panel-default">
         <div class="panel-heading"><strong>Comments</strong></div>
         <div class="panel-body">
-            {% render_field form.comments %}
+            {% render_field serializer.comments style=style %}
         </div>
     </div>
 {% endblock %}

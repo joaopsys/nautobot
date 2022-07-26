@@ -211,7 +211,7 @@ class RegionSerializer(CustomFieldModelSerializer):
 
 
 class SiteSerializer(TaggedObjectSerializer, StatusModelSerializerMixin, CustomFieldModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name="dcim-api:site-detail")
+    # url = serializers.HyperlinkedIdentityField(view_name="dcim-api:site-detail")
     region = NestedRegionSerializer(required=False, allow_null=True)
     tenant = NestedTenantSerializer(required=False, allow_null=True)
     time_zone = TimeZoneSerializerField(required=False, allow_null=True)
@@ -226,7 +226,7 @@ class SiteSerializer(TaggedObjectSerializer, StatusModelSerializerMixin, CustomF
         model = Site
         fields = [
             "id",
-            "url",
+            # "url",
             "name",
             "slug",
             "status",

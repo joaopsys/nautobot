@@ -147,7 +147,11 @@ class RegionViewSet(CustomFieldModelViewSet):
 #
 
 
+from nautobot.core.views.renderers import NautobotHTMLRender
+
 class SiteViewSet(StatusViewSetMixin, CustomFieldModelViewSet):
+    renderer_classes = [NautobotHTMLRender]
+    lookup_field = "slug"
     queryset = Site.objects.prefetch_related("region", "status", "tenant", "tags").annotate(
         device_count=count_related(Device, "site"),
         rack_count=count_related(Rack, "site"),
@@ -158,6 +162,21 @@ class SiteViewSet(StatusViewSetMixin, CustomFieldModelViewSet):
     )
     serializer_class = serializers.SiteSerializer
     filterset_class = filters.SiteFilterSet
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        # serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, partial=partial)
+        # serializer.is_valid(raise_exception=True)
+        # self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
 
 #
