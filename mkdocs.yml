@@ -2,7 +2,8 @@ dev_addr: '127.0.0.1:8001'
 edit_uri: edit/main/nautobot/docs
 site_dir: nautobot/project-static/docs
 site_name: Nautobot Documentation
-site_url: https://nautobot.readthedocs.io/
+# site_url is used for absolute paths to CSS files and such from the 404 page
+site_url: https://nautobot.readthedocs.io/en/stable/
 repo_url: https://github.com/nautobot/nautobot
 theme:
     name: readthedocs
