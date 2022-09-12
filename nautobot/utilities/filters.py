@@ -432,14 +432,14 @@ class NaturalKeyOrPKMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilte
 
         # If value is a model instance, stringify it to a pk.
         if isinstance(v, models.Model):
-            logger.debug("Model instance detected. Casting to a PK.")
+            logger.debug("Model instance detected for %s: Casting to a PK.", self.field_name)
             v = str(v.pk)
 
         # Try to cast the value to a UUID and set `is_pk` boolean.
         try:
             uuid.UUID(str(v))
         except (AttributeError, TypeError, ValueError):
-            logger.debug("Non-UUID value detected: Filtering using natural key")
+            logger.debug("Non-UUID value detected for %s: Filtering using natural key", self.field_name)
             is_pk = False
         else:
             v = str(v)  # Cast possible UUID instance to a string
@@ -456,7 +456,7 @@ class NaturalKeyOrPKMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilte
             name = f"{self.field_name}__{self.field.to_field_name}"
         # Otherwise just trust the field_name
         else:
-            logger.debug("UUID or list/qs detected: Filtering using field name")
+            logger.debug("UUID or list/qs detected for %s: Filtering using field name", self.field_name)
             name = self.field_name
 
         if name and self.lookup_expr != django_filters.conf.settings.DEFAULT_LOOKUP_EXPR:

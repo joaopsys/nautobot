@@ -18,7 +18,8 @@ from nautobot.extras.choices import DynamicGroupOperatorChoices
 from nautobot.extras.querysets import DynamicGroupQuerySet, DynamicGroupMembershipQuerySet
 from nautobot.extras.utils import extras_features
 from nautobot.utilities.forms.constants import BOOLEAN_WITH_BLANK_CHOICES
-from nautobot.utilities.forms.widgets import StaticSelect2
+from nautobot.utilities.forms.fields import DynamicModelChoiceField, DynamicModelMultipleChoiceField
+from nautobot.utilities.forms.widgets import APISelectMultiple, StaticSelect2
 from nautobot.utilities.utils import get_filterset_for_model, get_form_for_model
 
 
@@ -183,7 +184,7 @@ class DynamicGroup(OrganizationalModel):
             missing_fields = set()
 
         # Try a few ways to see if a missing field can be added to the filter fields.
-        for missing_field in missing_fields:
+        for missing_field in sorted(missing_fields):
             # Skip excluded fields
             if missing_field.startswith(self.exclude_filter_fields):
                 logger.debug("Skipping excluded form field: %s", missing_field)
@@ -226,6 +227,18 @@ class DynamicGroup(OrganizationalModel):
             # Null boolean fields need a special widget that doesn't save `False` when unchecked.
             if isinstance(modelform_field, forms.NullBooleanField):
                 modelform_field.widget = StaticSelect2(choices=BOOLEAN_WITH_BLANK_CHOICES)
+
+            if isinstance(modelform_field, DynamicModelChoiceField):
+                # new_modelform_field = filterset_field.field_class(queryset=modelform_field.queryset, required=False)
+                new_modelform_field = filterset_field.field
+                # There has to be a better way to get an APISelectMultiple that's equivalent to an existing APISelect!
+                new_modelform_field.widget = APISelectMultiple(
+                    attrs={
+                        **modelform_field.get_bound_field(modelform, missing_field).field.widget.attrs,
+                    }
+                )
+                new_modelform_field.widget.attrs["value-field"] = "slug"
+                modelform_field = new_modelform_field
 
             # Filter fields should never be required!
             modelform_field.required = False
