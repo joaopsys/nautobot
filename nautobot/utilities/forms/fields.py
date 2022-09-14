@@ -522,13 +522,19 @@ class DynamicModelChoiceField(DynamicModelChoiceMixin, forms.ModelChoiceField):
         return super().clean(value)
 
 
-class DynamicModelMultipleChoiceField(DynamicModelChoiceMixin, forms.ModelMultipleChoiceField):
+class DynamicModelMultipleChoiceField(DynamicModelChoiceMixin, django_filters.fields.ModelMultipleChoiceField):
     """
     A multiple-choice version of DynamicModelChoiceField.
     """
 
-    filter = django_filters.ModelMultipleChoiceFilter
     widget = widgets.APISelectMultiple
+
+    def __init__(self, *args, **kwargs):
+        self.natural_key = kwargs.get("to_field_name", "slug")
+        # Default to ModelMultipleChoiceFilter, but allow the creator to specify a different filter if desired,
+        # such as our NaturalKeyOrPKMultipleChoiceFilter class.
+        self.filter = kwargs.pop("filter", django_filters.ModelMultipleChoiceFilter)
+        super().__init__(*args, **kwargs)
 
     def prepare_value(self, value):
         """
@@ -543,6 +549,52 @@ class DynamicModelMultipleChoiceField(DynamicModelChoiceMixin, forms.ModelMultip
         if isinstance(value, str):
             value = [value]
         return super().prepare_value(value)
+
+    def _check_values(self, values):
+        """
+        Helper method to ModelMultipleChoiceField.clean().
+
+        This method overloads the grandparent method in `django.forms.models.ModelMultipleChoiceField`,
+        re-using some of that method's existing logic and adding support for coupling this field with
+        multiple model fields.
+        """
+        null = self.null_label is not None and values and self.null_value in values
+        if null:
+            values = [v for v in values if v != self.null_value]
+        # deduplicate given values to avoid creating many querysets or
+        # requiring the database backend deduplicate efficiently.
+        try:
+            values = frozenset(values)
+        except TypeError:
+            # list of lists isn't hashable, for example
+            raise ValidationError(
+                self.error_messages["invalid_list"],
+                code="invalid_list",
+            )
+        pk_values = set()
+        natural_key_values = set()
+        for item in values:
+            query = Q()
+            if is_uuid(item):
+                pk_values.add(item)
+                query |= Q(pk=item)
+            else:
+                natural_key_values.add(item)
+                query |= Q(**{self.natural_key: item})
+            qs = self.queryset.filter(query)
+            if not qs.exists():
+                import logging; logging.getLogger(__name__).error("Invalid choice, %s", query)
+                raise ValidationError(
+                    self.error_messages["invalid_choice"],
+                    code="invalid_choice",
+                    params={"value": item},
+                )
+        query = Q(pk__in=pk_values) | Q(**{f"{self.natural_key}__in": natural_key_values})
+        qs = self.queryset.filter(query)
+        result = list(qs)
+        if null:
+            result += [self.null_value]
+        return result
 
 
 class LaxURLField(forms.URLField):

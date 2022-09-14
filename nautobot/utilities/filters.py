@@ -25,7 +25,7 @@ from nautobot.utilities.constants import (
     FILTER_NUMERIC_BASED_LOOKUP_MAP,
     FILTER_TREENODE_NEGATION_LOOKUP_MAP,
 )
-from nautobot.utilities.forms.fields import MultiMatchModelMultipleChoiceField
+from nautobot.utilities.forms.fields import DynamicModelMultipleChoiceField
 
 from taggit.managers import TaggableManager
 
@@ -414,11 +414,12 @@ class NaturalKeyOrPKMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilte
     keyword argument on filter initialization (defaults to `slug`).
     """
 
-    field_class = MultiMatchModelMultipleChoiceField
+    field_class = DynamicModelMultipleChoiceField
 
     def __init__(self, *args, **kwargs):
         self.natural_key = kwargs.setdefault("to_field_name", "slug")
         super().__init__(*args, **kwargs)
+        self.extra.setdefault("filter", self)
 
     def get_filter_predicate(self, v):
         """
