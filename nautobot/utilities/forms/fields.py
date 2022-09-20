@@ -1,5 +1,6 @@
 import csv
 import json
+import logging
 import re
 from io import StringIO
 
@@ -44,6 +45,8 @@ __all__ = (
     "SlugField",
     "TagFilterField",
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CSVDataField(forms.CharField):
@@ -416,6 +419,7 @@ class DynamicModelChoiceMixin:
     """
 
     filter = django_filters.ModelChoiceFilter  # TODO can we change this? pylint: disable=redefined-builtin
+    filter_kwargs = {}
     widget = widgets.APISelect
 
     def __init__(
@@ -487,7 +491,8 @@ class DynamicModelChoiceMixin:
         data = bound_field.value()
         if data:
             field_name = getattr(self, "to_field_name") or "pk"
-            filter_ = self.filter(field_name=field_name)
+            filter_ = self.filter(field_name=field_name, **self.filter_kwargs)
+            logger.info("filter: %s, field_name: %s, data: %s", filter_, field_name, data)
             try:
                 self.queryset = filter_.filter(self.queryset, data)
             except TypeError:
@@ -534,6 +539,7 @@ class DynamicModelMultipleChoiceField(DynamicModelChoiceMixin, django_filters.fi
         # Default to ModelMultipleChoiceFilter, but allow the creator to specify a different filter if desired,
         # such as our NaturalKeyOrPKMultipleChoiceFilter class.
         self.filter = kwargs.pop("filter", django_filters.ModelMultipleChoiceFilter)
+        self.filter_kwargs = kwargs.pop("filter_kwargs", {})
         super().__init__(*args, **kwargs)
 
     def prepare_value(self, value):
@@ -583,13 +589,16 @@ class DynamicModelMultipleChoiceField(DynamicModelChoiceMixin, django_filters.fi
                 query |= Q(**{self.natural_key: item})
             qs = self.queryset.filter(query)
             if not qs.exists():
-                import logging; logging.getLogger(__name__).error("Invalid choice, %s", query)
+                logger.error("Invalid choice, %s", query)
                 raise ValidationError(
                     self.error_messages["invalid_choice"],
                     code="invalid_choice",
                     params={"value": item},
                 )
-        query = Q(pk__in=pk_values) | Q(**{f"{self.natural_key}__in": natural_key_values})
+        query = Q(pk__in=pk_values)
+        if natural_key_values:
+            query |= Q(**{f"{self.natural_key}__in": natural_key_values})
+        logger.info("query: %s", query)
         qs = self.queryset.filter(query)
         result = list(qs)
         if null:

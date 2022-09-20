@@ -419,7 +419,8 @@ class NaturalKeyOrPKMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilte
     def __init__(self, *args, **kwargs):
         self.natural_key = kwargs.setdefault("to_field_name", "slug")
         super().__init__(*args, **kwargs)
-        self.extra.setdefault("filter", self)
+        self.extra.setdefault("filter", type(self))
+        self.extra.setdefault("filter_kwargs", kwargs)
 
     def get_filter_predicate(self, v):
         """
@@ -453,7 +454,7 @@ class NaturalKeyOrPKMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilte
         # FIXME(jathan): It feels weird to have a list/qs make its way to `get_filter_predicate()`
         # which if you inspect the source for `django_filters.MultipleChoiceFilter.filter()` should
         # be handling those to generate singular filter predicates and concatentating them.
-        if not is_pk and not isinstance(v, (list, models.QuerySet)):
+        if self.field_name != self.field.to_field_name and not is_pk and not isinstance(v, (list, models.QuerySet)):
             name = f"{self.field_name}__{self.field.to_field_name}"
         # Otherwise just trust the field_name
         else:
@@ -463,6 +464,7 @@ class NaturalKeyOrPKMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilte
         if name and self.lookup_expr != django_filters.conf.settings.DEFAULT_LOOKUP_EXPR:
             name = "__".join([name, self.lookup_expr])
 
+        logger.info("Filter predicate: {%s: %s}", name, v)
         return {name: v}
 
 
