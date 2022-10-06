@@ -1111,7 +1111,7 @@ query ($device: [String!]) {
         self.assertEqual({"data": {"devices": []}}, response.data)
 
 
-# TODO: Standardize to APIViewTestCase (needs create & update tests)
+# TODO(Glenn): Standardize to APIViewTestCase (needs create & update tests)
 class ImageAttachmentTest(
     APIViewTestCases.GetObjectViewTestCase,
     APIViewTestCases.ListObjectsViewTestCase,

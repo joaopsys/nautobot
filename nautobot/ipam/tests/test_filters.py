@@ -327,7 +327,7 @@ class AggregateTestCase(FilterTestCases.FilterTestCase):
         params = {"date_added": ["2020-01-01", "2020-01-02"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
-    # TODO: Test for multiple values
+    # 2.0 TODO: Test for multiple values
     def test_prefix(self):
         params = {"prefix": "10.1.0.0/16"}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
@@ -577,7 +577,7 @@ class PrefixTestCase(FilterTestCases.FilterTestCase):
         vlans = VLAN.objects.all()[:2]
         params = {"vlan_id": [vlans[0].pk, vlans[1].pk]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
-        # TODO: Test for multiple values
+        # 2.0 TODO: Test for multiple values
         params = {"vlan_vid": vlans[0].vid}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 

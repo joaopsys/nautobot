@@ -63,7 +63,7 @@ CACHES = {
 
 # REDIS CACHEOPS
 CACHEOPS_REDIS = parse_redis_connection(redis_database=3)
-CACHEOPS_ENABLED = False  # TODO(john): we should revisit this, but caching has caused issues with testing
+CACHEOPS_ENABLED = False  # 2.0 TODO(jathan): Remove me.
 
 # Testing storages within cli.py
 STORAGE_CONFIG = {
