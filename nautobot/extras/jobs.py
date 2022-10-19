@@ -433,7 +433,7 @@ class BaseJob:
 
         return return_data
 
-    def validate_data(self, data):
+    def validate_data(self, data, files=None):
         cls_vars = self._get_vars()
 
         if not isinstance(data, dict):
@@ -444,9 +444,8 @@ class BaseJob:
                 raise ValidationError({k: "Job data contained an unknown property"})
 
         # defer validation to the form object
-        f = self.as_form(data=self.deserialize_data(data))
+        f = self.as_form(data=self.deserialize_data(data), files=files)
         if not f.is_valid():
-            print("invalid data")
             raise ValidationError(f.errors)
 
     @staticmethod
