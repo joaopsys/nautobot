@@ -537,8 +537,9 @@ def _run_job(request, job_model, legacy_response=False):
     if commit is None:
         commit = job_model.commit_default
 
+    cleaned_data = None
     try:
-        job.validate_data(data, files)
+        cleaned_data = job.validate_data(data, files)
     except FormsValidationError as e:
         # message_dict can only be accessed if ValidationError got a dict
         # in the constructor (saved as error_dict). Otherwise we get a list
@@ -569,7 +570,7 @@ def _run_job(request, job_model, legacy_response=False):
 
     # Try to create a ScheduledJob, or...
     if schedule_data:
-        schedule = _create_schedule(schedule_data, data, commit, job, job_model, request)
+        schedule = _create_schedule(schedule_data, job_model.job_class.serialize_data(cleaned_data), commit, job, job_model, request)
     else:
         schedule = None
 
@@ -580,7 +581,7 @@ def _run_job(request, job_model, legacy_response=False):
             job.class_path,
             job_content_type,
             request.user,
-            data=data,
+            data=job_model.job_class.serialize_data(cleaned_data),
             request=copy_safe_request(request),
             commit=commit,
         )
