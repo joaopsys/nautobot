@@ -570,7 +570,7 @@ def _run_job(request, job_model, legacy_response=False):
 
     # Try to create a ScheduledJob, or...
     if schedule_data:
-        schedule = _create_schedule(schedule_data, job_model.job_class.serialize_data(cleaned_data), commit, job, job_model, request)
+        schedule = _create_schedule(schedule_data, job_class.serialize_data(cleaned_data), commit, job, job_model, request)
     else:
         schedule = None
 
@@ -581,7 +581,7 @@ def _run_job(request, job_model, legacy_response=False):
             job.class_path,
             job_content_type,
             request.user,
-            data=job_model.job_class.serialize_data(cleaned_data),
+            data=job_class.serialize_data(cleaned_data),
             request=copy_safe_request(request),
             commit=commit,
         )
